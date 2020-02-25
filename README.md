@@ -6,6 +6,8 @@ This flowchart is made for the Pluto SDR, which provides both Rx and Tx. It is i
 
 Other SDRs may be used, remove the Sink part in order to just decode messages.
 
+## Limitataions
+
 Currently there is no autodetection for:
 
 * Bitrate. The XXX-rate Variable needs to be set manually to the length of a short pulse. Use a QT GUI Time Sink to measure....
@@ -14,7 +16,12 @@ Currently there is no autodetection for:
 
 * Threshold. It may be adjusted manually to fit the antenna and the current noise floor level. The Rx and Tx attenuation may also be adjusted for the required transmission range.
 
-The current design listens to its own transmissions (unless the antenna setup provides enough isolation). For a full duplex comms link, the Rx Tx frequencies may be separeted, but for a half duplex link a Rx/Tx switch may be added.
+## Intended use
 
-Disclaimer:
+Sniff short distance radio tranmission of simple devices such as thermometers and switches etc, and mimic their behaviour.
+
+Set up a comms link between two devices. The current design will listen to its own transmissions (unless the antenna setup provides enough isolation). A simple Rx/Tx switch may be added to the flowchart (half duplex link). For a full duplex link, the Rx Tx frequencies may be separeted.
+
+## Disclaimer
+
 Do not active Tx unless you know what you are doing and have the required permits etc.
