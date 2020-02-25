@@ -1,6 +1,8 @@
 # grc-ook
-Gnu radio implementation to modulate and demodulate On Off Keyed (OOK) packet transmissions.
+Gnu radio implementation to modulate and demodulate On Off Keyed (OOK) packet transmissions, which is the simplest form of Amplitude Shift Keying (ASK) modulation.
 
+![GitHub Logo](/images/logo.png)
+Format: ![Alt Text](url)
 
 This flowchart is made for the Pluto SDR, which provides both Rx and Tx. It is intended to be tuned to 433.92MHz in order to receive and send data.
 
@@ -18,9 +20,11 @@ Currently there is no autodetection for:
 
 ## Intended use
 
-Sniff short distance radio tranmission of simple devices such as thermometers and switches etc, and mimic their behaviour.
+This is not a complete tool, but it can be used to:
 
-Set up a comms link between two devices. The current design will listen to its own transmissions (unless the antenna setup provides enough isolation). A simple Rx/Tx switch may be added to the flowchart (half duplex link). For a full duplex link, the Rx Tx frequencies may be separeted.
+* Sniff short distance radio tranmission of simple devices such as thermometers and switches etc, and mimic their behaviour. Protocol details for some known devices can be found here: https://github.com/merbanan/rtl_433/tree/master/src/devices in order to be able to encode/decode the actual content of existing devices messages.
+
+* Set up a simple comms link between two devices. The current design will listen to its own transmissions (unless the antenna setup provides enough isolation). A simple Rx/Tx switch may be added to the flowchart (half duplex link). For a full duplex link, the Rx Tx frequencies may be separeted.
 
 ## Disclaimer
 
