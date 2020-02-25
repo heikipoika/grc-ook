@@ -117,116 +117,6 @@
     </param>
   </block>
   <block>
-    <key>variable_qtgui_range</key>
-    <param>
-      <key>comment</key>
-      <value></value>
-    </param>
-    <param>
-      <key>value</key>
-      <value>0</value>
-    </param>
-    <param>
-      <key>_enabled</key>
-      <value>True</value>
-    </param>
-    <param>
-      <key>_coordinate</key>
-      <value>(784, 108)</value>
-    </param>
-    <param>
-      <key>gui_hint</key>
-      <value></value>
-    </param>
-    <param>
-      <key>_rotation</key>
-      <value>0</value>
-    </param>
-    <param>
-      <key>id</key>
-      <value>variable_qtgui_range_0</value>
-    </param>
-    <param>
-      <key>label</key>
-      <value></value>
-    </param>
-    <param>
-      <key>min_len</key>
-      <value>200</value>
-    </param>
-    <param>
-      <key>orient</key>
-      <value>Qt.Horizontal</value>
-    </param>
-    <param>
-      <key>start</key>
-      <value>0</value>
-    </param>
-    <param>
-      <key>step</key>
-      <value>1</value>
-    </param>
-    <param>
-      <key>stop</key>
-      <value>1</value>
-    </param>
-    <param>
-      <key>rangeType</key>
-      <value>int</value>
-    </param>
-    <param>
-      <key>widget</key>
-      <value>counter</value>
-    </param>
-  </block>
-  <block>
-    <key>analog_const_source_x</key>
-    <param>
-      <key>alias</key>
-      <value></value>
-    </param>
-    <param>
-      <key>comment</key>
-      <value></value>
-    </param>
-    <param>
-      <key>const</key>
-      <value>variable_qtgui_range_0</value>
-    </param>
-    <param>
-      <key>affinity</key>
-      <value></value>
-    </param>
-    <param>
-      <key>_enabled</key>
-      <value>True</value>
-    </param>
-    <param>
-      <key>_coordinate</key>
-      <value>(200, 284)</value>
-    </param>
-    <param>
-      <key>_rotation</key>
-      <value>0</value>
-    </param>
-    <param>
-      <key>id</key>
-      <value>analog_const_source_x_0</value>
-    </param>
-    <param>
-      <key>maxoutbuf</key>
-      <value>0</value>
-    </param>
-    <param>
-      <key>minoutbuf</key>
-      <value>0</value>
-    </param>
-    <param>
-      <key>type</key>
-      <value>short</value>
-    </param>
-  </block>
-  <block>
     <key>blocks_char_to_float</key>
     <param>
       <key>alias</key>
@@ -379,7 +269,7 @@
     </param>
     <param>
       <key>_io_cache</key>
-      <value>('Serialize Source', 'blk', [('bitsInLast', '1'), ('repeat', '5'), ('gap', '40')], [('0', 'short', 1)], [('0', 'byte', 1)], '\n        bitsInLast - Number of bits to send from tha last byte\n        repeat - number of times to repeat the message\n        gap = the gap to use between messages\n        ', ['bitsInLast', 'gap', 'repeat'])</value>
+      <value>('Serialize Source', 'blk', [('bitsInLast', '1'), ('repeat', '5'), ('gap', '40')], [('msg_in', 'message', 1)], [('0', 'byte', 1)], '\n        bitsInLast - Number of bits to send from tha last byte\n        repeat - number of times to repeat the message\n        gap = the gap to use between messages\n        ', ['bitsInLast', 'gap', 'repeat'])</value>
     </param>
     <param>
       <key>_source_code</key>
@@ -391,6 +281,7 @@ Takes a predefined string, and outputs it as a serial OOK coded bitsream.....
 
 import numpy as np
 import sys
+import pmt
 
 from gnuradio import gr
 
@@ -407,25 +298,29 @@ class blk(gr.sync_block):
         gr.sync_block.__init__(
             self,
             name='Serialize Source', 
-            in_sig=[np.int16], 
+            in_sig=None, 
             out_sig=[np.byte]
         )
         
+        self.message_port_register_in(pmt.intern('msg_in'))
+        self.set_msg_handler(pmt.intern('msg_in'), self.handle_msg)
+ 
         self.bitsInLast = bitsInLast
 	self.items = [np.byte(0xff), np.byte(0xff), np.byte(0xea), np.byte(0x80)] #ea on eb off
         self.sent = 0
+        self.send = 0
 	self.repeat = repeat
         self.gap = gap
 
     def work(self, input_items, output_items):
             
         retcnt = 0
-        if ~self.sent &amp; input_items[0][0] &amp; 0x01:
+        if ~self.sent &amp; self.send &amp; 0x01:
         
                 if len(output_items[0]) &gt; (len(self.items)*8*5+self.gap)*self.repeat:
                         
                         for x in range(0, self.repeat):
-                                print x
+                                
                                 #output_items[0][retcnt] = 1
                                 #output_items[0][retcnt+1:retcnt+11] = 0
                                 #retcnt = retcnt + 11
@@ -435,6 +330,7 @@ class blk(gr.sync_block):
                                         if i == len(self.items)-1:
                                                 last = self.bitsInLast
                                         #print i
+                                        sys.stdout.write("%x " % (elem))
                                         for n in range(0,last):
                                                 #sys.stdout.write("%i " % (n))
                                                 #self.buffer.append(self.items[i] &amp; 0x01) # [i*7+n]
@@ -462,14 +358,18 @@ class blk(gr.sync_block):
                                 retcnt = retcnt + self.gap         
                                 
                         self.sent = 1
+                        self.send = 0 #forresten det kanske funka bara att det inte sags pa time sink
                         #print self.sent
-        elif ~input_items[0][0] &amp; 0x01:
+        elif ~self.send &amp; 0x01:
                 self.sent = 0
-                output_items[0][:] = 0
-                retcnt = len(output_items[0]) 
+                #self.send = 0
+                #output_items[0][:] = 0
+                #retcnt = len(output_items[0])
+                retcnt = 0 
         else:
-                output_items[0][:] = 0
-                retcnt = len(output_items[0]) 
+                #output_items[0][:] = 0
+                #retcnt = len(output_items[0])
+                retcnt = 0 
         #retcnt = self.count
         #self.count = 0
         #print self.buffer
@@ -478,6 +378,10 @@ class blk(gr.sync_block):
         #self.buffer[:] = []
         
         return retcnt
+
+    def handle_msg(self, msg):
+         self.items = bytearray.fromhex(pmt.symbol_to_string(msg))
+         self.send = 1
 </value>
     </param>
     <param>
@@ -574,6 +478,73 @@ class blk(gr.sync_block):
     <param>
       <key>samplerate</key>
       <value>samp_rate</value>
+    </param>
+  </block>
+  <block>
+    <key>qtgui_edit_box_msg</key>
+    <param>
+      <key>alias</key>
+      <value></value>
+    </param>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>affinity</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(200, 452)</value>
+    </param>
+    <param>
+      <key>gui_hint</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>qtgui_edit_box_msg_0</value>
+    </param>
+    <param>
+      <key>key</key>
+      <value></value>
+    </param>
+    <param>
+      <key>label</key>
+      <value>Message (in hex)</value>
+    </param>
+    <param>
+      <key>maxoutbuf</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>minoutbuf</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>is_pair</key>
+      <value>False</value>
+    </param>
+    <param>
+      <key>is_static</key>
+      <value>False</value>
+    </param>
+    <param>
+      <key>type</key>
+      <value>string</value>
+    </param>
+    <param>
+      <key>value</key>
+      <value>ff ff eb 80</value>
     </param>
   </block>
   <block>
@@ -944,12 +915,6 @@ class blk(gr.sync_block):
     </param>
   </block>
   <connection>
-    <source_block_id>analog_const_source_x_0</source_block_id>
-    <sink_block_id>epy_block_1</sink_block_id>
-    <source_key>0</source_key>
-    <sink_key>0</sink_key>
-  </connection>
-  <connection>
     <source_block_id>blocks_char_to_float_0</source_block_id>
     <sink_block_id>qtgui_time_sink_x_0</sink_block_id>
     <source_key>0</source_key>
@@ -978,5 +943,11 @@ class blk(gr.sync_block):
     <sink_block_id>blocks_repeat_0</sink_block_id>
     <source_key>0</source_key>
     <sink_key>0</sink_key>
+  </connection>
+  <connection>
+    <source_block_id>qtgui_edit_box_msg_0</source_block_id>
+    <sink_block_id>epy_block_1</sink_block_id>
+    <source_key>msg</source_key>
+    <sink_key>msg_in</sink_key>
   </connection>
 </flow_graph>
