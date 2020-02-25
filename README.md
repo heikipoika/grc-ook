@@ -3,7 +3,7 @@ Gnu radio implementation to modulate and demodulate On Off Keyed (OOK) packet tr
 
 ![Oscilloscope dump](/images/screenshot.png)
 
-This flowchart is made for the Pluto SDR, which provides both Rx and Tx. It is intended to be tuned to 433.92MHz in order to receive and send data.
+This flowchart is made for the Pluto SDR, which provides both Rx and Tx. It is intended to be tuned to 433.92MHz in order to receive and send data. Note: with Pluto the supplied antennas do not work very well on 433Mhz so you need to install something else.
 
 Other SDRs may be used, remove the Sink part in order to just decode messages.
 
@@ -19,7 +19,7 @@ Currently there is no autodetection for:
 
 ## Intended use
 
-This is not a complete tool, but it can be used to:
+This is not meant as a complete tool, but its components can be used to:
 
 * Sniff short distance radio tranmission of simple devices such as thermometers and switches etc, and mimic their behaviour. Protocol details for some known devices can be found here: https://github.com/merbanan/rtl_433/tree/master/src/devices in order to be able to encode/decode the actual content of existing devices messages.
 
