@@ -55,7 +55,7 @@ class blk(gr.sync_block):
                                         if i == len(self.items)-1:
                                                 last = self.bitsInLast
                                         #print i
-                                        sys.stdout.write("%x " % (elem))
+                                        ##sys.stdout.write("%x " % (elem))
                                         for n in range(0,last):
                                                 #sys.stdout.write("%i " % (n))
                                                 #self.buffer.append(self.items[i] & 0x01) # [i*7+n]

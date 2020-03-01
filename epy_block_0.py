@@ -1,7 +1,7 @@
 """
 Embedded Python Blocks:
 
-Each time this file is saved, GRC will instantiate the first class it finds
+Each time this file is saved, GRC will instantiate the first class it finds!!
 to get ports and parameters of your block. The arguments to __init__  will
 be the parameters. All of them are required to have default values!
 """
@@ -28,12 +28,19 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
         #self.example_param = example_param
 	self.buffer = np.byte(0)
 	self.count = 0
+	self.timeout = 0
 
     def work(self, input_items, output_items):
         """example: multiply with constant"""
 	if np.any(input_items[1][:] > 0):
         	for i in range (1, len(input_items[0])):
-			if input_items[1][i] & 0x01:
+			self.timeout = self.timeout + 1
+			if self.timeout == 2000 and self.count > 0:
+				print self.buffer
+				self.buffer = 0
+				self.count = 0
+			if input_items[1][i] & 0x01 & ~input_items[1][i-1]:
+				self.timeout = 0
 				#output_items[0][i] = (output_items[0][i-1] << 1) | input_items[0][i]
 				self.buffer = (self.buffer << 1) | (~input_items[0][i] & 0x01)
 				#print "strobe", input_items[1][i]
@@ -51,4 +58,13 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
 	#print "nop"
 	#print input_items[0][:]	
 	#print self.count, output_items[0][:]
+	else:
+		if self.timeout > 0:
+			self.timeout = 0
+			if self.count > 0:
+				print self.buffer
+				self.buffer = 0
+				self.count = 0
+			else:
+				print ""
         return len(input_items[0])
