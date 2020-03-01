@@ -13,7 +13,7 @@ Currently there is no autodetection for:
 
 * Bitrate. The *short_pulse* variable needs to be set manually to the length of a short pulse. Use a QT GUI Time Sink to measure....
 
-* ASK modulation scheme. It demodulates pulse width modulation with fixed period or fixed gap only (not fixed pulse variable gap such as the Nexa system). It modulates with fixed period but that can easily be changed to fixed gap (and even fixed pulse variable gap).
+* ASK modulation scheme. It demodulates pulse width modulation with fixed period or fixed gap only (not fixed pulse variable gap such as the Nexa system). It modulates with fixed period or fixed gap, but it needs to be entered manually in *hi_* and *lo_* variables.
 
 * Threshold. They may be adjusted manually to fit the antenna and the current noise floor level. The Rx and Tx attenuation may also be adjusted for the required transmission range.
 
@@ -27,4 +27,4 @@ This is not meant as a complete tool, but its components can be used to:
 
 ## Disclaimer
 
-Do not active Tx unless you know what you are doing and have the required permits etc.
+Do not activate Tx unless you know what you are doing and have the required permits etc.
