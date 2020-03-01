@@ -3,19 +3,19 @@ Gnu radio implementation to modulate and demodulate On Off Keyed (OOK) packet tr
 
 ![Oscilloscope dump](/images/screenshot.png)
 
-This flowchart is made for the Pluto SDR, which provides both Rx and Tx. It is intended to be tuned to 433.92MHz in order to receive and send data. Note: with Pluto the supplied antennas do not work very well on 433Mhz so you need to install something else.
+This flowchart is made for the Pluto SDR, which provides both Rx and Tx. It is intended to be tuned to 433.92MHz in order to receive and send data. Note: The Pluto supplied antennas do not work very well on 433Mhz so you need to connect something else.
 
-Other SDRs may be used, remove the Sink part in order to just decode messages.
+Other SDRs may be used, remove the Sink part if the SDR only supports Rx.
 
 ## Limitataions
 
 Currently there is no autodetection for:
 
-* Bitrate. The XXX-rate Variable needs to be set manually to the length of a short pulse. Use a QT GUI Time Sink to measure....
+* Bitrate. The *short_pulse* variable needs to be set manually to the length of a short pulse. Use a QT GUI Time Sink to measure....
 
 * ASK modulation scheme. It demodulates pulse width modulation with fixed period or fixed gap only (not fixed pulse variable gap such as the Nexa system). It modulates with fixed period but that can easily be changed to fixed gap (and even fixed pulse variable gap).
 
-* Threshold. It may be adjusted manually to fit the antenna and the current noise floor level. The Rx and Tx attenuation may also be adjusted for the required transmission range.
+* Threshold. They may be adjusted manually to fit the antenna and the current noise floor level. The Rx and Tx attenuation may also be adjusted for the required transmission range.
 
 ## Intended use
 
