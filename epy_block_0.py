@@ -15,11 +15,11 @@ from gnuradio import gr
 class blk(gr.sync_block):  # other base classes are basic_block, decim_block, interp_block
     """Embedded Python Block example - a simple multiply const"""
 
-    def __init__(self):  # only default arguments here
+    def __init__(self, reset_limit = 2000):  # only default arguments here
         """arguments to this function show up as parameters in GRC"""
         gr.sync_block.__init__(
             self,
-            name='Deserialize PrintByte Sink',   # will show up in GRC
+            name='Python OOK Demod',   # will show up in GRC
             in_sig=[np.byte, np.byte], 
             out_sig=None
         )
@@ -29,14 +29,15 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
 	self.buffer = np.byte(0)
 	self.count = 0
 	self.timeout = 0
+	self.reset_limit = reset_limit
 
     def work(self, input_items, output_items):
         """example: multiply with constant"""
 	if np.any(input_items[1][:] > 0):
         	for i in range (1, len(input_items[0])):
 			self.timeout = self.timeout + 1
-			if self.timeout == 2000 and self.count > 0:
-				print self.buffer
+			if self.timeout == self.reset_limit and self.count > 0:
+				sys.stdout.write("%x \n" % (self.buffer << (8 - self.count))) 
 				self.buffer = 0
 				self.count = 0
 			if input_items[1][i] & 0x01 & ~input_items[1][i-1]:
@@ -62,7 +63,7 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
 		if self.timeout > 0:
 			self.timeout = 0
 			if self.count > 0:
-				print self.buffer
+				sys.stdout.write("%x \n" % (self.buffer << (8 - self.count)))
 				self.buffer = 0
 				self.count = 0
 			else:

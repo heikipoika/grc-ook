@@ -113,7 +113,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>600000</value>
+      <value>2084000</value>
     </param>
   </block>
   <block>
@@ -128,7 +128,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(616, 172)</value>
+      <value>(544, 172)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -159,7 +159,7 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>True</value>
+      <value>1</value>
     </param>
     <param>
       <key>_coordinate</key>
@@ -296,7 +296,7 @@
     </param>
     <param>
       <key>delay</key>
-      <value>9*short_pulse*samp_rate/10000000</value>
+      <value>85*short_pulse*samp_rate/100000000</value>
     </param>
     <param>
       <key>_enabled</key>
@@ -629,7 +629,7 @@
     </param>
     <param>
       <key>_io_cache</key>
-      <value>('Deserialize PrintByte Sink', 'blk', [], [('0', 'byte', 1), ('1', 'byte', 1)], [], 'Embedded Python Block example - a simple multiply const', [])</value>
+      <value>('Python OOK Demod', 'blk', [('reset_limit', '2000')], [('0', 'byte', 1), ('1', 'byte', 1)], [], 'Embedded Python Block example - a simple multiply const', ['reset_limit'])</value>
     </param>
     <param>
       <key>_source_code</key>
@@ -650,11 +650,11 @@ from gnuradio import gr
 class blk(gr.sync_block):  # other base classes are basic_block, decim_block, interp_block
     """Embedded Python Block example - a simple multiply const"""
 
-    def __init__(self):  # only default arguments here
+    def __init__(self, reset_limit = 2000):  # only default arguments here
         """arguments to this function show up as parameters in GRC"""
         gr.sync_block.__init__(
             self,
-            name='Deserialize PrintByte Sink',   # will show up in GRC
+            name='Python OOK Demod',   # will show up in GRC
             in_sig=[np.byte, np.byte], 
             out_sig=None
         )
@@ -664,14 +664,15 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
 	self.buffer = np.byte(0)
 	self.count = 0
 	self.timeout = 0
+	self.reset_limit = reset_limit
 
     def work(self, input_items, output_items):
         """example: multiply with constant"""
 	if np.any(input_items[1][:] &gt; 0):
         	for i in range (1, len(input_items[0])):
 			self.timeout = self.timeout + 1
-			if self.timeout == 2000 and self.count &gt; 0:
-				print self.buffer
+			if self.timeout == self.reset_limit and self.count &gt; 0:
+				sys.stdout.write("%x \n" % (self.buffer &lt;&lt; (8 - self.count))) 
 				self.buffer = 0
 				self.count = 0
 			if input_items[1][i] &amp; 0x01 &amp; ~input_items[1][i-1]:
@@ -697,7 +698,7 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
 		if self.timeout &gt; 0:
 			self.timeout = 0
 			if self.count &gt; 0:
-				print self.buffer
+				sys.stdout.write("%x \n" % (self.buffer &lt;&lt; (8 - self.count)))
 				self.buffer = 0
 				self.count = 0
 			else:
@@ -725,6 +726,10 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
       <key>id</key>
       <value>epy_block_0</value>
     </param>
+    <param>
+      <key>reset_limit</key>
+      <value>2000</value>
+    </param>
   </block>
   <block>
     <key>epy_block</key>
@@ -738,11 +743,12 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
     </param>
     <param>
       <key>_io_cache</key>
-      <value>('Serialize Source', 'blk', [('bitsInLast', '1'), ('repeat', '5'), ('gap', '40')], [('msg_in', 'message', 1)], [('0', 'byte', 1)], '\n        bitsInLast - Number of bits to send from tha last byte\n        repeat - number of times to repeat the message\n        gap = the gap to use between messages\n        ', ['bitsInLast', 'gap', 'repeat'])</value>
+      <value>('Python OOK modulate', 'blk', [('bitsInLast', '1'), ('repeat', '5'), ('gap', '40'), ('hi_1', '1'), ('lo_1', '4'), ('hi_0', '3'), ('lo_0', '2')], [('msg_in', 'message', 1)], [('0', 'byte', 1)], '\n        bitsInLast - Number of bits to send from tha last byte\n        repeat - number of times to repeat the message\n        gap = the gap to use between messages\n        ', ['bitsInLast', 'gap', 'hi_0', 'hi_1', 'lo_0', 'lo_1', 'repeat'])</value>
     </param>
     <param>
       <key>_source_code</key>
       <value>"""
+Python OOK modulate
 Serialize source
 
 Takes a predefined string, and outputs it as a serial OOK coded bitsream.....
@@ -757,7 +763,7 @@ from gnuradio import gr
 
 class blk(gr.sync_block):
 
-    def __init__(self, bitsInLast = 1, repeat = 5, gap = 40):
+    def __init__(self, bitsInLast = 1, repeat = 5, gap = 40, hi_1 = 1, lo_1 = 4, hi_0 = 3, lo_0 = 2):
         """
         bitsInLast - Number of bits to send from tha last byte
         repeat - number of times to repeat the message
@@ -766,7 +772,7 @@ class blk(gr.sync_block):
         
         gr.sync_block.__init__(
             self,
-            name='Serialize Source', 
+            name='Python OOK modulate', 
             in_sig=None, 
             out_sig=[np.byte]
         )
@@ -780,6 +786,10 @@ class blk(gr.sync_block):
         self.send = 0
 	self.repeat = repeat
         self.gap = gap
+        self.hi_1 = hi_1
+        self.lo_1 = lo_1
+        self.hi_0 = hi_0
+        self.lo_0 = lo_0 
 
     def work(self, input_items, output_items):
             
@@ -804,16 +814,16 @@ class blk(gr.sync_block):
                                                 #sys.stdout.write("%i " % (n))
                                                 #self.buffer.append(self.items[i] &amp; 0x01) # [i*7+n]
                                                 if elem &amp; 0x80:
-                                                        output_items[0][retcnt] = 1
-                                                        output_items[0][retcnt+1:retcnt+5] = 0
-                                                        retcnt = retcnt + 5
+                                                        output_items[0][retcnt:retcnt+self.hi_1] = 1
+                                                        output_items[0][retcnt+self.hi_1:retcnt+self.hi_1 +self.lo_1] = 0
+                                                        retcnt = retcnt + self.hi_1 + self.lo_1
                                                         #output_items[0][retcnt] = 1
                                                         #output_items[0][retcnt+1:retcnt+6] = 0
                                                         #retcnt = retcnt + 6 
                                                 else:
-                                                        output_items[0][retcnt:retcnt+3] = 1
-                                                        output_items[0][retcnt+5] = 0 
-                                                        retcnt = retcnt + 5 
+                                                        output_items[0][retcnt:retcnt+self.hi_0] = 1
+                                                        output_items[0][retcnt+self.hi_0:retcnt+self.hi_0+self.lo_0] = 0 
+                                                        retcnt = retcnt + self.hi_0 + self.lo_0
                                                         #output_items[0][retcnt] = 1
                                                         #output_items[0][retcnt+1:retcnt+3] = 0 
                                                         #retcnt = retcnt + 3 
@@ -849,8 +859,8 @@ class blk(gr.sync_block):
         return retcnt
 
     def handle_msg(self, msg):
-         self.items = bytearray.fromhex(pmt.symbol_to_string(msg))
-         self.send = 1
+            self.items = bytearray.fromhex(pmt.symbol_to_string(msg))
+            self.send = 1
 </value>
     </param>
     <param>
@@ -874,8 +884,24 @@ class blk(gr.sync_block):
       <value>50</value>
     </param>
     <param>
+      <key>hi_0</key>
+      <value>3</value>
+    </param>
+    <param>
+      <key>hi_1</key>
+      <value>1</value>
+    </param>
+    <param>
       <key>id</key>
       <value>epy_block_1</value>
+    </param>
+    <param>
+      <key>lo_0</key>
+      <value>2</value>
+    </param>
+    <param>
+      <key>lo_1</key>
+      <value>4</value>
     </param>
     <param>
       <key>repeat</key>
@@ -890,7 +916,8 @@ class blk(gr.sync_block):
     </param>
     <param>
       <key>comment</key>
-      <value></value>
+      <value>waveman 240us, 1:4, 3:2 -&gt;1400us fixed period
+fineoffset wh2 500us, 1:2, 3:2  -&gt; 100us fixed gap</value>
     </param>
     <param>
       <key>_enabled</key>
@@ -898,7 +925,7 @@ class blk(gr.sync_block):
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(728, 188)</value>
+      <value>(640, 164)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -910,7 +937,7 @@ class blk(gr.sync_block):
     </param>
     <param>
       <key>note</key>
-      <value>waveman 240us</value>
+      <value>Pulse width in us</value>
     </param>
   </block>
   <block>
@@ -952,7 +979,8 @@ class blk(gr.sync_block):
     </param>
     <param>
       <key>comment</key>
-      <value></value>
+      <value>ff ff ea 80 on
+ff ff eb 80 off</value>
     </param>
     <param>
       <key>_enabled</key>
@@ -960,7 +988,7 @@ class blk(gr.sync_block):
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(152, 164)</value>
+      <value>(152, 140)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -973,37 +1001,6 @@ class blk(gr.sync_block):
     <param>
       <key>note</key>
       <value>600k lowest</value>
-    </param>
-  </block>
-  <block>
-    <key>note</key>
-    <param>
-      <key>alias</key>
-      <value></value>
-    </param>
-    <param>
-      <key>comment</key>
-      <value></value>
-    </param>
-    <param>
-      <key>_enabled</key>
-      <value>True</value>
-    </param>
-    <param>
-      <key>_coordinate</key>
-      <value>(584, 804)</value>
-    </param>
-    <param>
-      <key>_rotation</key>
-      <value>0</value>
-    </param>
-    <param>
-      <key>id</key>
-      <value>note_3</value>
-    </param>
-    <param>
-      <key>note</key>
-      <value>short_pulse*2-short_pulse/2</value>
     </param>
   </block>
   <block>
@@ -1224,7 +1221,7 @@ class blk(gr.sync_block):
     </param>
     <param>
       <key>value</key>
-      <value>ff ff eb 80</value>
+      <value>ff ff ea 80</value>
     </param>
   </block>
   <block>

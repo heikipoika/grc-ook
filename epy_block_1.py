@@ -1,4 +1,5 @@
 """
+Python OOK modulate
 Serialize source
 
 Takes a predefined string, and outputs it as a serial OOK coded bitsream.....
@@ -13,7 +14,7 @@ from gnuradio import gr
 
 class blk(gr.sync_block):
 
-    def __init__(self, bitsInLast = 1, repeat = 5, gap = 40):
+    def __init__(self, bitsInLast = 1, repeat = 5, gap = 40, hi_1 = 1, lo_1 = 4, hi_0 = 3, lo_0 = 2):
         """
         bitsInLast - Number of bits to send from tha last byte
         repeat - number of times to repeat the message
@@ -22,7 +23,7 @@ class blk(gr.sync_block):
         
         gr.sync_block.__init__(
             self,
-            name='Serialize Source', 
+            name='Python OOK modulate', 
             in_sig=None, 
             out_sig=[np.byte]
         )
@@ -36,6 +37,10 @@ class blk(gr.sync_block):
         self.send = 0
 	self.repeat = repeat
         self.gap = gap
+        self.hi_1 = hi_1
+        self.lo_1 = lo_1
+        self.hi_0 = hi_0
+        self.lo_0 = lo_0 
 
     def work(self, input_items, output_items):
             
@@ -60,16 +65,16 @@ class blk(gr.sync_block):
                                                 #sys.stdout.write("%i " % (n))
                                                 #self.buffer.append(self.items[i] & 0x01) # [i*7+n]
                                                 if elem & 0x80:
-                                                        output_items[0][retcnt] = 1
-                                                        output_items[0][retcnt+1:retcnt+5] = 0
-                                                        retcnt = retcnt + 5
+                                                        output_items[0][retcnt:retcnt+self.hi_1] = 1
+                                                        output_items[0][retcnt+self.hi_1:retcnt+self.hi_1 +self.lo_1] = 0
+                                                        retcnt = retcnt + self.hi_1 + self.lo_1
                                                         #output_items[0][retcnt] = 1
                                                         #output_items[0][retcnt+1:retcnt+6] = 0
                                                         #retcnt = retcnt + 6 
                                                 else:
-                                                        output_items[0][retcnt:retcnt+3] = 1
-                                                        output_items[0][retcnt+5] = 0 
-                                                        retcnt = retcnt + 5 
+                                                        output_items[0][retcnt:retcnt+self.hi_0] = 1
+                                                        output_items[0][retcnt+self.hi_0:retcnt+self.hi_0+self.lo_0] = 0 
+                                                        retcnt = retcnt + self.hi_0 + self.lo_0
                                                         #output_items[0][retcnt] = 1
                                                         #output_items[0][retcnt+1:retcnt+3] = 0 
                                                         #retcnt = retcnt + 3 
@@ -105,5 +110,5 @@ class blk(gr.sync_block):
         return retcnt
 
     def handle_msg(self, msg):
-         self.items = bytearray.fromhex(pmt.symbol_to_string(msg))
-         self.send = 1
+            self.items = bytearray.fromhex(pmt.symbol_to_string(msg))
+            self.send = 1
