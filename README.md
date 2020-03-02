@@ -1,9 +1,11 @@
 # grc-ook
-Gnu radio implementation to modulate and demodulate On Off Keyed (OOK) packet transmissions, which is the simplest form of Amplitude Shift Keying (ASK) modulation.
+Gnu radio implementation to modulate and demodulate On Off Keyed (OOK) packet transmissions, which is the simplest form of Amplitude Shift Keying (ASK) modulation. The modulate and demodulate blocks are written i Python, not the fastest to execute, but easy to modify...
 
-![Oscilloscope dump](/images/screenshot.png)
+![Flowchart](/images/grc-ook.grc.png)
 
 This flowchart is made for the Pluto SDR, which provides both Rx and Tx. It is intended to be tuned to 433.92MHz in order to receive and send data. Note: The Pluto supplied antennas do not work very well on 433Mhz so you need to connect something else.
+
+![Oscilloscope dump](/images/screenshot.png)
 
 Other SDRs may be used, remove the Sink part if the SDR only supports Rx.
 
